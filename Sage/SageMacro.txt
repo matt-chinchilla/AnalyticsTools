@@ -1,0 +1,74 @@
+Sub SageMacro()
+    Dim keywords As Variant
+
+    ActiveWindow.DisplayGridlines = True  ' Display gridlines
+
+    ' Define the keywords to search for
+    keywords = Array("Posted dt.", "Doc dt.", "Doc", "Memo/Description", "Department", "JNL", "Debit", "Credit")
+
+    ' Call the DeleteRowsAboveKeywords subroutine
+    Call DeleteRowsAboveKeywords(keywords)
+
+
+    ' Call the FormatWorksheet subroutine
+    Call FormatWorksheet
+
+End Sub
+
+Sub DeleteRowsAboveKeywords(keywords As Variant)
+    Dim rng As Range
+    Dim cell As Range
+    Dim keyword As Variant
+    Dim firstInstanceRow As Long
+
+    ' Initialize the row of the first instance to the last row in the worksheet
+    firstInstanceRow = Rows.Count
+
+    ' Loop through each column in the worksheet
+    For Each rng In ActiveSheet.UsedRange.Columns
+        ' Loop through each cell in the column
+        For Each cell In rng.Cells
+            ' Loop through each keyword
+            For Each keyword In keywords
+                ' If the cell contains the keyword and its row is less than the current first instance row, update the first instance row
+                If InStr(cell.Value, keyword) > 0 And cell.Row < firstInstanceRow Then
+                    firstInstanceRow = cell.Row
+                    Exit For
+                End If
+            Next keyword
+        Next cell
+    Next rng
+
+    ' If a first instance was found, delete all rows above it
+    If firstInstanceRow < Rows.Count Then
+        Rows("1:" & firstInstanceRow - 1).Delete
+    End If
+End Sub
+
+Sub FormatWorksheet()
+    Dim rng As Range
+    Dim cell As Range
+
+    ' Insert a new row at the top of the worksheet
+    Rows("1:1").Insert Shift:=xlDown
+
+    ' Set the value of the first cell in the new row to "Account ref. number"
+    Range("A1").Value = "Account ref. number"
+
+    ' Loop through each cell in the first row
+    For Each cell In Rows("1:1").Cells
+        ' Rename the columns as specified
+        Select Case cell.Value
+            Case "Posted dt."
+                cell.Value = "Posted Date"
+            Case "Doc dt."
+                cell.Value = "Journal ref. number"
+            Case "Doc"
+                cell.Value = "Journal ref. number"
+            Case "Memo/Description"
+                cell.Value = "Comments"
+            Case "JNL"
+                cell.Value = "Source"
+        End Select
+    Next cell
+End Sub
